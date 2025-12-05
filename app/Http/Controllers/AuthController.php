@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * Tampilkan halaman login sesuai role
+     * Halaman login berdasarkan role
      */
     public function showLogin($role)
     {
@@ -18,7 +18,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Tampilkan halaman register
+     * Halaman Register
      */
     public function showRegister()
     {
@@ -26,7 +26,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Proses login
+     * Proses Login
      */
     public function login(Request $request)
     {
@@ -37,30 +37,25 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            switch ($user->role) {
-                case 'dinas':
-                    return redirect()->route('dashboard.dinas');
-                case 'kepala_sekolah':
-                    return redirect()->route('dashboard.kepsek');
-                case 'guru':
-                    return redirect()->route('dashboard.guru');
-                case 'siswa':
-                    return redirect()->route('dashboard.siswa');
-                case 'orang_tua':
-                    return redirect()->route('dashboard.orangtua');
-                default:
-                    return redirect()->route('home');
-            }
+        if (!Auth::attempt($credentials)) {
+            return back()->withErrors(['email' => 'Email atau password salah.']);
         }
 
-        return back()->withErrors(['email' => 'Email atau password salah.']);
+        $user = Auth::user();
+
+        // Redirect berdasarkan role
+        return match ($user->role) {
+            'dinas'           => redirect()->route('dashboard.dinas'),
+            'kepala_sekolah'  => redirect()->route('dashboard.kepsek'),
+            'guru'            => redirect()->route('dashboard.guru'),
+            'siswa'           => redirect()->route('dashboard.siswa'),
+            'orang_tua'       => redirect()->route('dashboard.orangtua'),
+            default           => redirect()->route('home'),
+        };
     }
 
     /**
-     * Proses register
+     * Proses Register
      */
     public function register(Request $request)
     {
@@ -84,10 +79,14 @@ class AuthController extends Controller
 
     /**
      * Logout
+     * HARUS menggunakan POST agar tidak error 419
      */
-    public function logout()
+    public function logout(Request $request)
     {
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('home');
     }
 }

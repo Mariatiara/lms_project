@@ -1,70 +1,73 @@
 <div class="fixed top-0 left-64 right-0 bg-white shadow h-16 flex items-center justify-between px-6 z-40">
 
-    {{-- Judul Halaman --}}
+    
     <h2 class="text-xl font-semibold capitalize">
-        Dashboard {{ str_replace('_',' ', Auth::user()->role) }}
+        Dashboard <?php echo e(str_replace('_',' ', Auth::user()->role)); ?>
+
     </h2>
 
-    {{-- Bagian Kanan --}}
+    
     <div class="flex items-center gap-6">
 
-        {{-- NOTIFIKASI --}}
-        <a href="{{ route('notif.index') }}" class="relative">
-            @include('components.icons.notifikasi')
+        
+        <a href="<?php echo e(route('notif.index')); ?>" class="relative">
+            <?php echo $__env->make('components.icons.notifikasi', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-            @php
+            <?php
             $notifCount = \App\Models\Message::where('penerima_id', Auth::id())
             ->where('is_read', false)
             ->count();
 
-            @endphp
+            ?>
 
-            @if($notifCount > 0)
+            <?php if($notifCount > 0): ?>
                 <span id="notif-badge"
                     class="absolute -top-1 -right-1 bg-red-600 text-white text-xs 
                         rounded-full w-5 h-5 flex items-center justify-center">
-                    {{ $notifCount }}
+                    <?php echo e($notifCount); ?>
+
                 </span>
-            @endif
+            <?php endif; ?>
         </a>
 
-        {{-- PESAN --}}
-        <a href="{{ route('chat.index') }}" class="relative">
-            @include('components.icons.pesan')
+        
+        <a href="<?php echo e(route('chat.index')); ?>" class="relative">
+            <?php echo $__env->make('components.icons.pesan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-            @php
+            <?php
                 $msgCount = \App\Models\Message::where('penerima_id', Auth::id())
                             ->where('is_read', false)
                             ->count();
-            @endphp
+            ?>
 
-            @if($msgCount > 0)
+            <?php if($msgCount > 0): ?>
                 <span id="chat-badge"
                     class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs 
                         rounded-full w-5 h-5 flex items-center justify-center">
-                    {{ $msgCount }}
+                    <?php echo e($msgCount); ?>
+
                 </span>
-            @endif
+            <?php endif; ?>
         </a>
 
-        {{-- PROFIL DROPDOWN --}}
+        
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2">
-                @include('components.icons.profil')
-                <span>{{ Auth::user()->name }}</span>
+                <?php echo $__env->make('components.icons.profil', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                <span><?php echo e(Auth::user()->name); ?></span>
             </button>
 
-            {{-- Dropdown --}}
+            
             <div x-show="open"
                  @click.outside="open = false"
                  class="absolute right-0 mt-2 w-40 bg-white shadow rounded py-2 border z-50">
 
-                <a href="{{ route('settings.index') }}" 
+                <a href="<?php echo e(route('settings.index')); ?>" 
                    class="block px-4 py-2 hover:bg-gray-100 text-sm">
                     Pengaturan
                 </a>
 
-                <a href="{{ route('logout') }}" 
+                <a href="<?php echo e(route('logout')); ?>" 
                    class="block px-4 py-2 hover:bg-gray-100 text-sm text-red-600">
                     Logout
                 </a>
@@ -75,11 +78,11 @@
 </div>
 
 
-{{-- POLLING NOTIF & CHAT --}}
+
 <script>
 setInterval(() => {
     // Notifikasi
-    fetch("{{ route('notif.count') }}")
+    fetch("<?php echo e(route('notif.count')); ?>")
         .then(r => r.json())
         .then(d => {
             const badge = document.getElementById('notif-badge');
@@ -101,3 +104,4 @@ setInterval(() => {
         });
 }, 3000);
 </script>
+<?php /**PATH C:\xampp\htdocs\lms_project\resources\views/components/topbar.blade.php ENDPATH**/ ?>
