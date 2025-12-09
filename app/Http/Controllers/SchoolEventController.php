@@ -19,13 +19,24 @@ class SchoolEventController extends Controller
     /**
      * Get events for FullCalendar
      */
+    /**
+     * Helper to get Current School ID
+     */
+    private function getSchoolId()
+    {
+        $user = Auth::user();
+        return $user->school_id ?? $user->teacher?->school_id ?? $user->student?->school_id;
+    }
+
+    /**
+     * Get events for FullCalendar
+     */
     public function getEvents(Request $request)
     {
         $start = $request->query('start');
         $end = $request->query('end');
 
-        $user = Auth::user();
-        $schoolId = $user->school_id ?? $user->student?->school_id ?? $user->teacher?->school_id;
+        $schoolId = $this->getSchoolId();
 
         if (!$schoolId) {
             return response()->json([]);
@@ -70,6 +81,12 @@ class SchoolEventController extends Controller
      */
     public function store(Request $request)
     {
+        $schoolId = $this->getSchoolId();
+
+        if (!$schoolId) {
+             abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'start_date' => 'required|date',
@@ -78,13 +95,9 @@ class SchoolEventController extends Controller
             'description' => 'nullable|string',
             'is_holiday' => 'boolean',
         ]);
-
-        $user = Auth::user();
-        // Assuming only School Admin or Headmaster can create events
-        // Logic for permission check should be in middleware or policy, keeping it simple here or assuming usage of gates in routes
         
         $event = SchoolEvent::create([
-            'school_id' => $user->school_id,
+            'school_id' => $schoolId,
             'title' => $request->title,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
@@ -101,8 +114,9 @@ class SchoolEventController extends Controller
      */
     public function update(Request $request, SchoolEvent $schoolEvent)
     {
-        // Simple auth check
-        if ($schoolEvent->school_id !== Auth::user()->school_id) {
+        $schoolId = $this->getSchoolId();
+
+        if (!$schoolId || $schoolEvent->school_id !== $schoolId) {
             abort(403);
         }
 
@@ -132,7 +146,9 @@ class SchoolEventController extends Controller
      */
     public function destroy(SchoolEvent $schoolEvent)
     {
-        if ($schoolEvent->school_id !== Auth::user()->school_id) {
+        $schoolId = $this->getSchoolId();
+
+        if (!$schoolId || $schoolEvent->school_id !== $schoolId) {
             abort(403);
         }
 

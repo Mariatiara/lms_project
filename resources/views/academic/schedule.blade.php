@@ -9,20 +9,27 @@
         <h3 class="font-bold mb-4">Filter & Tools</h3>
         
         <div class="mb-4">
+             <a href="{{ route('academic.time-settings.index') }}" class="text-blue-600 text-sm hover:underline">
+                 Atur Jam Pelajaran (Bell Schedule)
+             </a>
+        </div>
+
+        <div class="mb-4">
             <label class="block text-sm font-bold mb-2">Tahun Akademik</label>
             <select x-model="filters.academic_year_id" @change="refetch" class="w-full border rounded px-3 py-2">
                 <option value="">Pilih Tahun Akademik</option>
-                @foreach(\App\Models\AcademicYear::all() as $year)
+                @foreach($academicYears as $year)
                     <option value="{{ $year->id }}">{{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}</option>
                 @endforeach
             </select>
         </div>
 
+
         <div class="mb-4">
             <label class="block text-sm font-bold mb-2">Kelas</label>
             <select x-model="filters.classroom_id" @change="refetch" class="w-full border rounded px-3 py-2" :disabled="!filters.academic_year_id && !filters.teacher_id">
                 <option value="">Pilih Kelas</option>
-                @foreach(\App\Models\Classroom::all() as $class)
+                @foreach($classrooms as $class)
                     <option value="{{ $class->id }}">{{ $class->name }}</option>
                 @endforeach
             </select>
@@ -32,7 +39,7 @@
             <label class="block text-sm font-bold mb-2">Guru</label>
             <select x-model="filters.teacher_id" @change="refetch" class="w-full border rounded px-3 py-2">
                 <option value="">Pilih Guru (Opsional)</option>
-                @foreach(\App\Models\Teacher::with('user')->get() as $teacher)
+                @foreach($teachers as $teacher)
                     <option value="{{ $teacher->id }}">{{ $teacher->user->name }}</option>
                 @endforeach
             </select>
@@ -60,7 +67,7 @@
                     <label class="block text-sm font-bold mb-2">Mata Pelajaran (Course)</label>
                     <select x-model="form.course_id" class="w-full border rounded px-3 py-2" required>
                         <option value="">Pilih Mata Pelajaran</option>
-                        @foreach(\App\Models\Course::with(['subject', 'classroom', 'teacher.user'])->get() as $course)
+                        @foreach($courses as $course)
                             <option value="{{ $course->id }}">
                                 {{ $course->subject->name }} - {{ $course->classroom->name }} ({{ $course->teacher->user->name }})
                             </option>
@@ -71,25 +78,39 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-bold mb-2">Hari</label>
-                    <select x-model="form.day_of_week" class="w-full border rounded px-3 py-2" required>
+                    <select x-model="form.day_of_week" @change="fetchPeriods" class="w-full border rounded px-3 py-2" required>
                         <option value="monday">Senin</option>
                         <option value="tuesday">Selasa</option>
                         <option value="wednesday">Rabu</option>
                         <option value="thursday">Kamis</option>
                         <option value="friday">Jumat</option>
                         <option value="saturday">Sabtu</option>
+                        <option value="sunday">Minggu</option>
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-2 gap-4 mb-4" x-show="activePeriods.length > 0">
                     <div>
-                        <label class="block text-sm font-bold mb-2">Jam Mulai</label>
-                        <input type="time" x-model="form.start_time" class="w-full border rounded px-3 py-2" required>
+                        <label class="block text-sm font-bold mb-2">Mulai Jam Ke-</label>
+                        <select x-model="form.start_period" class="w-full border rounded px-3 py-2" required>
+                            <option value="">Pilih Jam</option>
+                            <template x-for="p in activePeriods" :key="p.id">
+                                <option :value="p.period_number" x-text="p.label + ' (' + p.start_time.slice(0,5) + ')'"></option>
+                            </template>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold mb-2">Jam Selesai</label>
-                        <input type="time" x-model="form.end_time" class="w-full border rounded px-3 py-2" required>
+                        <label class="block text-sm font-bold mb-2">Sampai Jam Ke-</label>
+                        <select x-model="form.end_period" class="w-full border rounded px-3 py-2" required>
+                            <option value="">Pilih Jam</option>
+                            <template x-for="p in activePeriods" :key="p.id">
+                                <option :value="p.period_number" x-text="p.label + ' (' + p.end_time.slice(0,5) + ')'"></option>
+                            </template>
+                        </select>
                     </div>
+                </div>
+                <div x-show="activePeriods.length === 0" class="mb-4 text-red-500 text-sm">
+                    Belum ada pengaturan jam pelajaran untuk hari ini. <a href="{{ route('academic.time-settings.index') }}" class="underline">Atur Sekarang</a>
                 </div>
 
                 <div class="flex justify-end gap-2">
@@ -141,9 +162,10 @@
             form: {
                 course_id: '',
                 day_of_week: 'monday',
-                start_time: '07:00',
-                end_time: '08:30'
+                start_period: '',
+                end_period: ''
             },
+            activePeriods: [], // Period list for dropdown
             
             // Confirmation Modal State
             confirmModal: {
@@ -194,11 +216,23 @@
                     },
                     eventClick: (info) => {
                         if (info.jsEvent.type === 'click') {
-                            this.openModal('edit', info.event);
+                            if (info.event.extendedProps.type === 'empty') {
+                                // Clicked on an empty slot -> Open Create Modal Pre-filled
+                                this.openModal('create', null, {
+                                    day_of_week: info.event.extendedProps.day_of_week,
+                                    period: info.event.extendedProps.period_number
+                                });
+                            } else if (info.event.extendedProps.type === 'class') {
+                                // Clicked on existing class -> Open Edit Modal
+                                this.openModal('edit', info.event);
+                            }
                         }
                     }
                 });
                 this.calendar.render();
+                
+                // Fetch periods for initial state (monday)
+                this.fetchPeriods();
             },
 
             refetch() {
@@ -209,24 +243,58 @@
                 }
             },
 
-            openModal(mode, event = null) {
+            async fetchPeriods() {
+                try {
+                    let res = await fetch(`{{ route('academic.time-settings.data') }}?day_of_week=${this.form.day_of_week}`);
+                    this.activePeriods = await res.json();
+                } catch (e) {
+                    console.error('Failed to load periods', e);
+                }
+            },
+
+            matchPeriod(timeStr) {
+                 // Simple matcher: timeStr "07:00:00" or "07:00"
+                 // periods have "07:00:00"
+                 let time = timeStr.slice(0,5);
+                 let found = this.activePeriods.find(p => p.start_time.slice(0,5) === time || p.end_time.slice(0,5) === time);
+                 // If searching for start period, we match start_time. If end period, match end_time.
+                 // But here we rely on the fact that schedules were created FROM periods.
+                 return found ? found.period_number : '';
+            },
+
+            async openModal(mode, event = null, prefill = null) {
                 this.mode = mode;
                 if (mode === 'create') {
+                    // Default values
                     this.form = {
                         course_id: '',
-                        day_of_week: 'monday',
-                        start_time: '07:00',
-                        end_time: '08:30'
+                        day_of_week: prefill ? prefill.day_of_week : 'monday',
+                        start_period: prefill ? prefill.period : '',
+                        end_period: prefill ? prefill.period : ''
                     };
                     this.scheduleId = null;
+                    
+                    // Fetch periods for the selected day (default Monday or prefilled day)
+                    await this.fetchPeriods(); 
                 } else {
                     this.scheduleId = event.id;
-                    this.form = {
-                        course_id: event.extendedProps.course_id,
-                        day_of_week: this.getDayFromDate(event.start),
-                        start_time: event.start.toTimeString().slice(0,5),
-                        end_time: event.end.toTimeString().slice(0,5)
-                    };
+                    let day = this.getDayFromDate(event.start);
+                    this.form.day_of_week = day;
+                    
+                    // Allow UI to update day select, then fetch periods
+                    await this.fetchPeriods();
+                    
+                    // Prepare times for matching
+                    let startTime = event.start.toTimeString().slice(0,5);
+                    let endTime = event.end.toTimeString().slice(0,5);
+
+                    // Find matching periods
+                    let startP = this.activePeriods.find(p => p.start_time.slice(0,5) === startTime);
+                    let endP = this.activePeriods.find(p => p.end_time.slice(0,5) === endTime);
+
+                    this.form.course_id = event.extendedProps.course_id;
+                    this.form.start_period = startP ? startP.period_number : '';
+                    this.form.end_period = endP ? endP.period_number : '';
                 }
                 window.dispatchEvent(new CustomEvent('open-modal', { detail: 'schedule-modal' }));
             },

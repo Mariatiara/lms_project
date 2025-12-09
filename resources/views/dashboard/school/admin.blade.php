@@ -100,6 +100,7 @@
                         </path>
                     </svg>
                     Status Kelengkapan Data
+                    <span class="text-xs font-normal text-gray-500 ml-auto">Update Realtime</span>
                 </h2>
                 <div class="space-y-6">
                     <!-- Students Data -->
@@ -107,30 +108,62 @@
                         <div class="flex justify-between items-end mb-2">
                             <span class="text-sm font-medium text-gray-700">Data Siswa</span>
                             @if($studentDataProgress >= 80)
-                                <span
-                                    class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Lengkap</span>
+                                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Lengkap {{ $studentDataProgress }}%</span>
                             @else
-                                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Perlu
-                                    Dilengkapi</span>
+                                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Perlu Dilengkapi ({{ $studentDataProgress }}%)</span>
                             @endif
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                             <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
                                 style="width: {{ $studentDataProgress }}%"></div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Target: Lengkapi 100% sebelum UTS.</p>
                     </div>
 
-                    <!-- Schedule Data (Static for now) -->
+                    <!-- Teachers Data -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-sm font-medium text-gray-700">Data Guru</span>
+                            @if($teacherDataProgress >= 80)
+                                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Lengkap {{ $teacherDataProgress }}%</span>
+                            @else
+                                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Perlu Dilengkapi ({{ $teacherDataProgress }}%)</span>
+                            @endif
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-purple-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
+                                style="width: {{ $teacherDataProgress }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- School Data -->
+                    <div>
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-sm font-medium text-gray-700">Profil Sekolah</span>
+                            @if($schoolDataProgress >= 100)
+                                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Lengkap</span>
+                            @else
+                                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Perlu Dilengkapi ({{ $schoolDataProgress }}%)</span>
+                            @endif
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-emerald-600 h-2.5 rounded-full transition-all duration-1000 ease-out"
+                                style="width: {{ $schoolDataProgress }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Data -->
                     <div>
                         <div class="flex justify-between items-end mb-2">
                             <span class="text-sm font-medium text-gray-700">Jadwal Pelajaran</span>
-                            <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-lg">Belum
-                                Dibuat</span>
+                            @if($scheduleCreated)
+                                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Sudah Dibuat</span>
+                            @else
+                                <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-lg">Belum Dibuat</span>
+                            @endif
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                            <div class="bg-red-500 h-2.5 rounded-full transition-all duration-1000 ease-out"
-                                style="width: 10%"></div>
+                            <div class="{{ $scheduleCreated ? 'bg-emerald-500' : 'bg-red-500' }} h-2.5 rounded-full transition-all duration-1000 ease-out"
+                                style="width: {{ $scheduleCreated ? '100' : '5' }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -203,6 +236,8 @@
                     </a>
                 </div>
             </div>
+        </div>
+
         </div>
     </div>
 @endsection
