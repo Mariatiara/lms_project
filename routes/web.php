@@ -158,6 +158,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/academic/schedule', [ClassScheduleController::class, 'index'])->name('academic.schedule.index');
     Route::get('/academic/schedule/data', [ClassScheduleController::class, 'getSchedule'])->name('academic.schedule.data');
     Route::resource('academic/schedules', ClassScheduleController::class)->except(['create', 'edit', 'index', 'show']); // API for Create/Update/Delete
+
+    // Time Settings (Jam Pelajaran)
+    Route::get('/academic/time-settings', [\App\Http\Controllers\SchoolTimeSettingController::class, 'index'])->name('academic.time-settings.index');
+    Route::post('/academic/time-settings', [\App\Http\Controllers\SchoolTimeSettingController::class, 'store'])->name('academic.time-settings.store');
+    Route::get('/academic/time-settings/data', [\App\Http\Controllers\SchoolTimeSettingController::class, 'getSettings'])->name('academic.time-settings.data');
 });
 
 // =====================================================================
