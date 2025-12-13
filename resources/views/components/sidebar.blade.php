@@ -166,6 +166,14 @@
                 <span class="font-medium">Manajemen Jadwal</span>
             </a>
 
+            <a href="{{ route('school.grade-weights.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive('school.grade-weights.*') }}">
+                <div class="w-5 h-5 transition-transform group-hover:scale-110">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="font-medium">Bobot Nilai</span>
+            </a>
+
             <div class="mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider px-3">
                 Data Master
             </div>
@@ -264,6 +272,22 @@
                 Pembelajaran
             </div>
 
+            <a href="{{ route('student.courses.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['student.courses.*']) }}">
+                <div class="w-5 h-5 transition-transform group-hover:scale-110">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <span class="font-medium">Kelas Saya</span>
+            </a>
+
+            <a href="{{ route('student.exams.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['student.exams.*']) }}">
+                <div class="w-5 h-5 transition-transform group-hover:scale-110">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <span class="font-medium">Ujian / Kuis</span>
+            </a>
+
             <a href="{{ route('academic.calendar.index') }}" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive('academic.calendar.*') }}">
                 <div class="w-5 h-5 transition-transform group-hover:scale-110">
@@ -272,24 +296,24 @@
                 <span class="font-medium">Kalender Akademik</span>
             </a>
 
-            <a href="{{ route('academic.schedule.index') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['academic.schedule.*', 'jadwal.*']) }}">
+            <a href="{{ route('student.schedule.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['student.schedule.*']) }}">
                 <div class="w-5 h-5 transition-transform group-hover:scale-110">
                     @include('components.icons.jadwal')
                 </div>
                 <span class="font-medium">Jadwal Pelajaran</span>
             </a>
 
-            <a href="{{ route('tugas.index') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['tugas.*', 'assignments.*']) }}">
+            <a href="{{ route('student.assignments.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive(['student.assignments.*']) }}">
                 <div class="w-5 h-5 transition-transform group-hover:scale-110">
                     @include('components.icons.file-upload')
                 </div>
                 <span class="font-medium">Tugas Saya</span>
             </a>
 
-            <a href="{{ route('nilai.siswa') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive('nilai.*') }}">
+            <a href="{{ route('rapor.index') }}" 
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ isActive('rapor.*') }}">
                 <div class="w-5 h-5 transition-transform group-hover:scale-110">
                     @include('components.icons.nilai')
                 </div>

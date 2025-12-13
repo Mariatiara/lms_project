@@ -71,6 +71,7 @@ Master data for subjects taught in the school.
 | school_id | foreignId | FK to `schools` |
 | name | string | Subject name |
 | code | string | Subject code |
+| passing_grade | integer | KKM/Minimal Grade (Default 75) |
 | timestamps | timestamp | |
 
 ### Profiles
@@ -147,14 +148,15 @@ Defines the bell schedule (periods) for a school.
 
 #### Assignments (`assignments`)
 
-| Column      | Type       | Description     |
-| ----------- | ---------- | --------------- |
-| id          | bigInteger | Primary Key     |
-| course_id   | foreignId  | FK to `courses` |
-| title       | string     |                 |
-| description | text       |                 |
-| due_date    | datetime   |                 |
-| timestamps  | timestamp  |                 |
+| Column      | Type       | Description                                                  |
+| ----------- | ---------- | ------------------------------------------------------------ |
+| id          | bigInteger | Primary Key                                                  |
+| course_id   | foreignId  | FK to `courses`                                              |
+| title       | string     |                                                              |
+| description | text       |                                                              |
+| due_date    | datetime   |                                                              |
+| category    | enum       | `knowledge` (Tulis), `skill` (Praktek). Default `knowledge`. |
+| timestamps  | timestamp  |                                                              |
 
 #### Assignment Submissions (`assignment_submissions`)
 
@@ -171,29 +173,30 @@ Defines the bell schedule (periods) for a school.
 
 #### Exams (`exams`)
 
-| Column           | Type       | Description     |
-| ---------------- | ---------- | --------------- |
-| id               | bigInteger | Primary Key     |
-| course_id        | foreignId  | FK to `courses` |
-| title            | string     |                 |
-| start_time       | datetime   |                 |
-| end_time         | datetime   |                 |
-| duration_minutes | integer    |                 |
-| is_published     | boolean    |                 |
-| timestamps       | timestamp  |                 |
+| Column           | Type       | Description                       |
+| ---------------- | ---------- | --------------------------------- |
+| id               | bigInteger | Primary Key                       |
+| course_id        | foreignId  | FK to `courses`                   |
+| title            | string     |                                   |
+| start_time       | datetime   |                                   |
+| end_time         | datetime   |                                   |
+| duration_minutes | integer    |                                   |
+| is_published     | boolean    |                                   |
+| category         | enum       | `daily`, `mid_term`, `final_term` |
+| timestamps       | timestamp  |                                   |
 
 #### Exam Questions (`exam_questions`)
 
-| Column         | Type       | Description                              |
-| -------------- | ---------- | ---------------------------------------- |
-| id             | bigInteger | Primary Key                              |
-| exam_id        | foreignId  | FK to `exams`                            |
-| question_type  | enum       | `multiple_choice`, `essay`, `true_false` |
-| question_text  | text       |                                          |
-| points         | integer    | Default 1                                |
-| options        | json       | For multiple choice                      |
-| correct_answer | text       |                                          |
-| timestamps     | timestamp  |                                          |
+| Column         | Type       | Description                                                                 |
+| -------------- | ---------- | --------------------------------------------------------------------------- |
+| id             | bigInteger | Primary Key                                                                 |
+| exam_id        | foreignId  | FK to `exams`                                                               |
+| question_type  | string     | `multiple_choice`, `essay`, `true_false`, `short_answer`, `multiple_answer` |
+| question_text  | text       |                                                                             |
+| points         | integer    | Default 1                                                                   |
+| options        | json       | For multiple choice                                                         |
+| correct_answer | text       |                                                                             |
+| timestamps     | timestamp  |                                                                             |
 
 #### Exam Attempts (`exam_attempts`)
 
@@ -240,6 +243,49 @@ Defines the bell schedule (periods) for a school.
 | file_path   | string     |                 |
 | file_type   | string     | e.g. pdf, ppt   |
 | timestamps  | timestamp  |                 |
+
+#### Course Material Completions (`course_material_completions`)
+
+Tracks which materials have been read/downloaded by students.
+
+| Column             | Type       | Description                |
+| ------------------ | ---------- | -------------------------- |
+| id                 | bigInteger | Primary Key                |
+| student_id         | foreignId  | FK to `students`           |
+| course_material_id | foreignId  | FK to `course_materials`   |
+| completed_at       | timestamp  | When material was accessed |
+| timestamps         | timestamp  |                            |
+
+#### Grade Weights (`grade_weights`)
+
+Defines the weight formula for grade calculation.
+
+| Column     | Type       | Description                       |
+| ---------- | ---------- | --------------------------------- |
+| id         | bigInteger | Primary Key                       |
+| school_id  | foreignId  | FK to `schools`                   |
+| category   | enum       | `daily`, `mid_term`, `final_term` |
+| weight     | integer    | e.g. 2, 1, 1                      |
+| timestamps | timestamp  |                                   |
+
+#### Report Cards (`report_cards`)
+
+Finalized grades for a student in a specific subject and academic year.
+
+| Column           | Type       | Description                      |
+| ---------------- | ---------- | -------------------------------- |
+| id               | bigInteger | Primary Key                      |
+| student_id       | foreignId  | FK to `students`                 |
+| teacher_id       | foreignId  | FK to `teachers`                 |
+| subject_id       | foreignId  | FK to `subjects`                 |
+| academic_year_id | foreignId  | FK to `academic_years`           |
+| formative_score  | decimal    | Avg of daily assignments/quizzes |
+| mid_term_score   | decimal    | PTS                              |
+| final_term_score | decimal    | PAS                              |
+| final_grade      | decimal    | Calculated Final Grade           |
+| predicate        | string     | A, B, C, D                       |
+| comments         | text       |                                  |
+| timestamps       | timestamp  |                                  |
 
 ### School Management
 
@@ -306,4 +352,11 @@ erDiagram
     Courses ||--o{ Attendances : tracks
     Courses ||--o{ ClassSchedules : scheduled_at
     Courses ||--o{ CourseMaterials : contains
+    CourseMaterials ||--o{ CourseMaterialCompletions : has
+    Students ||--o{ CourseMaterialCompletions : completes
+
+    Schools ||--o{ GradeWeights : defines
+    Students ||--o{ ReportCards : has
+    Subjects ||--o{ ReportCards : graded_in
+    Teachers ||--o{ ReportCards : issued_by
 ```

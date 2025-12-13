@@ -9,6 +9,8 @@ use App\Http\Controllers\Dashboard\DinasSchoolController;
 use App\Http\Controllers\Dashboard\HeadmasterController;
 use App\Http\Controllers\Dashboard\SchoolAdminController;
 use App\Http\Controllers\Dashboard\TeacherController as DashboardTeacherController;
+use App\Http\Controllers\Dashboard\TeacherExamController as DashboardTeacherExamController;
+use App\Http\Controllers\Dashboard\StudentExamController as DashboardStudentExamController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SchoolRegistrationController;
 use App\Http\Controllers\SubjectController;
@@ -32,6 +34,7 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\Dashboard\StudentController as DashboardStudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SchoolEventController;
@@ -107,11 +110,51 @@ Route::middleware(['auth', 'verified', 'role:guru'])->group(function () {
     
     Route::post('/teacher/courses/{id}/assignments', [DashboardTeacherController::class, 'storeAssignment'])->name('teacher.courses.assignments.store');
     Route::put('/teacher/assignments/{id}', [DashboardTeacherController::class, 'updateAssignment'])->name('teacher.assignments.update'); // Added Update Route
+    Route::get('/teacher/assignments/{id}', [DashboardTeacherController::class, 'showAssignment'])->name('teacher.assignments.show');
+    Route::post('/teacher/assignments/{id}/grade', [DashboardTeacherController::class, 'gradeSubmission'])->name('teacher.assignments.grade');
     Route::post('/teacher/courses/{id}/attendance', [DashboardTeacherController::class, 'storeAttendance'])->name('teacher.courses.attendance.store');
     Route::get('/teacher/courses/{id}/attendance/{date}', [DashboardTeacherController::class, 'getAttendanceByDate'])->name('teacher.courses.attendance.show');
+    // Teacher Exam Routes
+    Route::get('/teacher/courses/{courseId}/exams', [DashboardTeacherExamController::class, 'index'])->name('teacher.exams.index');
+    Route::get('/teacher/courses/{courseId}/exams/create', [DashboardTeacherExamController::class, 'create'])->name('teacher.exams.create');
+    Route::post('/teacher/courses/{courseId}/exams', [DashboardTeacherExamController::class, 'store'])->name('teacher.exams.store');
+    Route::get('/teacher/exams/{id}/edit', [DashboardTeacherExamController::class, 'edit'])->name('teacher.exams.edit');
+    Route::put('/teacher/exams/{id}', [DashboardTeacherExamController::class, 'update'])->name('teacher.exams.update');
+    Route::delete('/teacher/exams/{id}', [DashboardTeacherExamController::class, 'destroy'])->name('teacher.exams.destroy');
+    
+    Route::get('/teacher/exams/{id}/questions', [DashboardTeacherExamController::class, 'questions'])->name('teacher.exams.questions');
+    Route::post('/teacher/exams/{id}/questions', [DashboardTeacherExamController::class, 'storeQuestion'])->name('teacher.exams.questions.store');
+    Route::delete('/teacher/questions/{id}', [DashboardTeacherExamController::class, 'destroyQuestion'])->name('teacher.exams.questions.destroy');
 
+    // Exam Results & Grading
+    Route::get('/teacher/exams/{id}/results', [DashboardTeacherExamController::class, 'examResults'])->name('teacher.exams.results');
+    Route::get('/teacher/exams/{id}/review/{attemptId}', [DashboardTeacherExamController::class, 'reviewAttempt'])->name('teacher.exams.review');
+    Route::post('/teacher/exams/{id}/grade/{attemptId}', [DashboardTeacherExamController::class, 'storeGrade'])->name('teacher.exams.grade');
+
+    // Gradebook
+    Route::get('/teacher/courses/{courseId}/gradebook', [\App\Http\Controllers\Dashboard\GradebookController::class, 'index'])->name('teacher.gradebook.index');
+    Route::post('/teacher/courses/{courseId}/gradebook', [\App\Http\Controllers\Dashboard\GradebookController::class, 'store'])->name('teacher.gradebook.store');
 });
-Route::middleware(['auth', 'verified', 'role:siswa'])->get('/dashboard/student', [StudentController::class, 'index'])->name('dashboard.student');
+Route::middleware(['auth', 'verified', 'role:siswa'])->group(function() {
+    Route::get('/dashboard/student', [DashboardStudentController::class, 'index'])->name('dashboard.student');
+    Route::get('/student/courses', [DashboardStudentController::class, 'courses'])->name('student.courses.index');
+    Route::get('/student/courses/{id}', [DashboardStudentController::class, 'show'])->name('student.courses.show');
+    Route::post('/student/materials/{id}/complete', [DashboardStudentController::class, 'markMaterialComplete'])->name('student.materials.complete');
+    
+    Route::get('/student/schedule', [DashboardStudentController::class, 'schedule'])->name('student.schedule.index');
+    Route::get('/student/assignments', [DashboardStudentController::class, 'assignments'])->name('student.assignments.index');
+    Route::get('/student/assignments/{id}', [DashboardStudentController::class, 'showAssignment'])->name('student.assignments.show');
+    Route::post('/student/assignments/{id}/submit', [DashboardStudentController::class, 'submitAssignment'])->name('student.assignments.submit');
+    Route::get('/student/profile', [DashboardStudentController::class, 'profile'])->name('student.profile.index');
+
+    // Student Exam Routes
+    Route::get('/student/exams', [DashboardStudentExamController::class, 'index'])->name('student.exams.index');
+    Route::get('/student/exams/{id}', [DashboardStudentExamController::class, 'show'])->name('student.exams.show');
+    Route::post('/student/exams/{id}/start', [DashboardStudentExamController::class, 'start'])->name('student.exams.start');
+    Route::get('/student/exams/{id}/take', [DashboardStudentExamController::class, 'take'])->name('student.exams.take');
+    Route::post('/student/exams/{id}/submit', [DashboardStudentExamController::class, 'submit'])->name('student.exams.submit');
+    Route::get('/student/exams/{id}/result', [DashboardStudentExamController::class, 'result'])->name('student.exams.result');
+});
 Route::middleware(['auth', 'verified', 'role:orang_tua'])->get('/dashboard/parent', [ParentController::class, 'index'])->name('dashboard.parent');
 
 // =====================================================================
@@ -150,6 +193,12 @@ Route::middleware(['auth', 'verified', 'role:admin_sekolah'])->prefix('master')-
 
     // Courses (Pengajaran)
     Route::resource('courses', \App\Http\Controllers\CourseController::class);
+});
+
+// Grade Weights & Settings (Admin Sekolah)
+Route::middleware(['auth', 'verified', 'role:admin_sekolah'])->prefix('school')->name('school.')->group(function () {
+    Route::get('/grade-weights', [\App\Http\Controllers\Dashboard\School\GradeWeightController::class, 'index'])->name('grade-weights.index');
+    Route::post('/grade-weights', [\App\Http\Controllers\Dashboard\School\GradeWeightController::class, 'store'])->name('grade-weights.store');
 });
 
 // =====================================================================
@@ -205,9 +254,10 @@ Route::middleware(['auth', 'verified', 'role:siswa'])->get('/nilai-saya', [Nilai
 
 // Rapor Semester
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/rapor', [RaporController::class, 'index'])->name('rapor.index');
-    Route::post('/rapor/store', [RaporController::class, 'store'])->name('rapor.store');
-    Route::get('/rapor/siswa/{id}', [RaporController::class, 'show'])->name('rapor.siswa');
+    Route::get('/rapor', [\App\Http\Controllers\Dashboard\ReportCardController::class, 'index'])->name('rapor.index');
+    // Store is handled by Gradebook for now, but keeping for compatibility if needed or removing
+    // Route::post('/rapor/store', [ReportCardController::class, 'store'])->name('rapor.store'); 
+    // Route::get('/rapor/siswa/{id}', [ReportCardController::class, 'show'])->name('rapor.siswa');
 });
 Route::get('/rapor/pdf/{id}', [RaporPdfController::class, 'generate'])
      ->middleware('auth')
@@ -216,14 +266,12 @@ Route::get('/rapor/pdf/{id}', [RaporPdfController::class, 'generate'])
 // =====================================================================
 // FILE: Tugas & Pengumpulan
 // =====================================================================
-Route::middleware(['auth', 'verified'])->group(function () {
-    // Route::get('/tugas', [TugasController::class, 'index'])->name('tugas.index'); // Moved to Teacher Course
-    // Route::get('/tugas/create', [TugasController::class, 'create'])->name('tugas.create'); // Moved to Modal
-    // Route::post('/tugas/store', [TugasController::class, 'store'])->name('tugas.store'); // Replaced by TeacherController
-    Route::get('/tugas/{id}', [TugasController::class, 'show'])->name('tugas.show');
-    Route::post('/tugas/{id}/upload', [PengumpulanController::class, 'upload'])->name('tugas.upload');
-    Route::post('/pengumpulan/{id}/nilai', [PengumpulanController::class, 'nilai'])->name('pengumpulan.nilai');
-});
+// =====================================================================
+// FILE: Tugas & Pengumpulan (Legacy removed, using DashboardStudentController)
+// =====================================================================
+// Route::middleware(['auth', 'verified'])->group(function () {
+//     // Legacy routes removed
+// });
 
 // =====================================================================
 // ABSENSI

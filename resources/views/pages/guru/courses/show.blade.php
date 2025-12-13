@@ -25,6 +25,12 @@
                         </span>
                     </div>
                 </div>
+                <div>
+                    <a href="{{ route('teacher.gradebook.index', $course->id) }}" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-semibold backdrop-blur-sm transition-colors flex items-center gap-2 shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        Buku Nilai
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -103,6 +109,12 @@
                     :class="{ 'text-blue-600': activeTab === 'absensi', 'text-gray-500 hover:text-gray-800': activeTab !== 'absensi' }">
                 Absensi
                 <div x-show="activeTab === 'absensi'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" x-transition></div>
+            </button>
+            <button @click="activeTab = 'ujian'" 
+                    class="py-5 text-sm font-semibold transition-all relative"
+                    :class="{ 'text-blue-600': activeTab === 'ujian', 'text-gray-500 hover:text-gray-800': activeTab !== 'ujian' }">
+                Ujian / Quiz
+                <div x-show="activeTab === 'ujian'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" x-transition></div>
             </button>
         </div>
 
@@ -190,7 +202,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <a href="{{ route('tugas.show', $assignment->id) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+                            <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
                                 Lihat Detail
                             </a>
                             <button @click="$dispatch('open-modal', 'edit-assignment'); $dispatch('set-edit-assignment', {{ $assignment->toJson() }})" class="px-3 py-2 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 rounded-lg text-sm font-medium transition border border-transparent">
@@ -314,6 +326,70 @@
                     @endforeach
                 </div>
                 @endif
+            </div>
+
+            <!-- Ujian Tab -->
+            <div x-show="activeTab === 'ujian'" class="space-y-6" style="display: none;">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Daftar Ujian & Kuis</h3>
+                    <a href="{{ route('teacher.exams.create', $course->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Buat Ujian Baru
+                    </a>
+                </div>
+
+                @if($course->exams->isEmpty())
+                <div class="text-center py-12 bg-gray-50 rounded-lg">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <p class="text-gray-500 italic">Belum ada ujian yang dibuat.</p>
+                </div>
+                @else
+                <div class="grid gap-4">
+                    @foreach($course->exams as $exam)
+                    <div class="border border-gray-100 rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-gray-50 transition gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-gray-800">{{ $exam->title }}</h4>
+                                @if($exam->is_published)
+                                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Terbit</span>
+                                @else
+                                    <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Draft</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    {{ \Carbon\Carbon::parse($exam->start_time)->format('d M Y, H:i') }}
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    {{ $exam->duration_minutes }} Menit
+                                </span>
+                                <span class="flex items-center gap-1">
+                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                    {{ $exam->questions->count() }} Soal
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <a href="{{ route('teacher.exams.questions', $exam->id) }}" class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition">
+                                Kelola Soal
+                            </a>
+                            <a href="{{ route('teacher.exams.edit', $exam->id) }}" class="px-3 py-1.5 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 rounded-lg text-xs font-medium transition border border-transparent">
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+                
+                <div class="text-center mt-4 pt-4 border-t border-gray-100">
+                    <a href="{{ route('teacher.exams.index', $course->id) }}" class="text-blue-600 hover:text-blue-700 font-medium text-sm inline-flex items-center gap-1">
+                        Lihat Semua Ujian
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </a>
+                </div>
             </div>
 
         </div>
@@ -473,149 +549,150 @@
     </div>
 </x-modal>
     <!-- Modal Input Absensi -->
-    <x-modal name="attendance-modal" focusable>
-        <div class="bg-white p-6 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" x-data="{
-            date: '{{ now()->format('Y-m-d') }}',
-            attendanceData: {},
-            isLoading: false,
+<x-modal name="attendance-modal" focusable>
+    <div class="bg-white p-6 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" x-data="{
+        date: '{{ now()->format('Y-m-d') }}',
+        attendanceData: {},
+        isLoading: false,
+        
+        async init() {
+            // Determine if we are just opening or editing
+        },
+
+        async fetchData(targetDate) {
+            this.isLoading = true;
+            this.date = targetDate;
             
-            async init() {
-                // Determine if we are just opening or editing
-            },
-
-            async fetchData(targetDate) {
-                this.isLoading = true;
-                this.date = targetDate;
+            try {
+                // Fetch existing attendance data for this date
+                const response = await fetch('{{ route('teacher.courses.attendance.show', ['id' => $course->id, 'date' => ':date']) }}'.replace(':date', targetDate));
+                const data = await response.json();
                 
-                try {
-                    // Fetch existing attendance data for this date
-                    const response = await fetch('{{ route('teacher.courses.attendance.show', ['id' => $course->id, 'date' => ':date']) }}'.replace(':date', targetDate));
-                    const data = await response.json();
-                    
-                    // Reset all radios first
-                    document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
-                    
-                    // Map db enum values back to H/I/S/A
-                    // present -> H
-                    // permission -> I
-                    // sick -> S
-                    // absent -> A
-                    
-                    const reverseMap = {
-                        'present': 'H',
-                        'permission': 'I',
-                        'sick': 'S',
-                        'absent': 'A'
-                    };
+                // Reset all radios first
+                document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+                
+                // Map db enum values back to H/I/S/A
+                // present -> H
+                // permission -> I
+                // sick -> S
+                // absent -> A
+                
+                const reverseMap = {
+                    'present': 'H',
+                    'permission': 'I',
+                    'sick': 'S',
+                    'absent': 'A'
+                };
 
-                    // Fill form
-                    for (const [studentId, status] of Object.entries(data)) {
-                        const shortStatus = reverseMap[status];
-                        const radio = document.querySelector(`input[name='attendance[${studentId}]'][value='${shortStatus}']`);
-                        if(radio) radio.checked = true;
-                    }
-
-                } catch (error) {
-                    console.error('Error fetching attendance:', error);
-                } finally {
-                    this.isLoading = false;
+                // Fill form
+                for (const [studentId, status] of Object.entries(data)) {
+                    const shortStatus = reverseMap[status];
+                    const radio = document.querySelector(`input[name='attendance[${studentId}]'][value='${shortStatus}']`);
+                    if(radio) radio.checked = true;
                 }
-            },
 
-            selectAll(status) {
-                document.querySelectorAll('input[type=radio][value=' + status + ']').forEach(r => r.checked = true);
+            } catch (error) {
+                console.error('Error fetching attendance:', error);
+            } finally {
+                this.isLoading = false;
             }
-        }"
-        @edit-attendance.window="$dispatch('open-modal', 'attendance-modal'); fetchData($event.detail);">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Absensi Kelas</h2>
-                    <p class="text-gray-500 text-sm">Catat atau ubah kehadiran siswa.</p>
-                </div>
-                <button type="button" x-on:click="$dispatch('close-modal', 'attendance-modal')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+        },
+
+        selectAll(status) {
+            document.querySelectorAll('input[type=radio][value=' + status + ']').forEach(r => r.checked = true);
+        }
+    }"
+    @edit-attendance.window="$dispatch('open-modal', 'attendance-modal'); fetchData($event.detail);">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Absensi Kelas</h2>
+                <p class="text-gray-500 text-sm">Catat atau ubah kehadiran siswa.</p>
             </div>
+            <button type="button" x-on:click="$dispatch('close-modal', 'attendance-modal')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <form action="{{ route('teacher.courses.attendance.store', $course->id) }}" method="POST" class="flex-1 overflow-hidden flex flex-col relative">
+            @csrf
             
-            <form action="{{ route('teacher.courses.attendance.store', $course->id) }}" method="POST" class="flex-1 overflow-hidden flex flex-col relative">
-                @csrf
-                
-                <!-- Loading Overlay -->
-                <div x-show="isLoading" class="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
-                    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+            <!-- Loading Overlay -->
+            <div x-show="isLoading" class="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
+                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Tanggal Pertemuan</label>
+                <input type="date" name="date" x-model="date" @change="fetchData(date)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="flex justify-end gap-2 mb-4 sticky top-0 bg-white py-2 z-10 border-b">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider self-center mr-2">Set Semua:</span>
+                    <button type="button" @click="selectAll('H')" class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 hover:bg-green-200">Hadir Semua</button>
+                    <button type="button" @click="selectAll('S')" class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Sakit Semua</button>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Tanggal Pertemuan</label>
-                    <input type="date" name="date" x-model="date" @change="fetchData(date)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-                </div>
-
-                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                     <div class="flex justify-end gap-2 mb-4 sticky top-0 bg-white py-2 z-10 border-b">
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider self-center mr-2">Set Semua:</span>
-                        <button type="button" @click="selectAll('H')" class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 hover:bg-green-200">Hadir Semua</button>
-                        <button type="button" @click="selectAll('S')" class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Sakit Semua</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4">
-                        @foreach($course->classroom->students as $student)
-                        <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-4">
-                               <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
-                                    {{ substr($student->user->name, 0, 2) }}
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">{{ $student->user->name }}</h4>
-                                    <p class="text-xs text-gray-500">{{ $student->nis }}</p>
-                                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    @foreach($course->classroom->students as $student)
+                    <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                                {{ substr($student->user->name, 0, 2) }}
                             </div>
-                            
-                            <div class="flex gap-4">
-                                <label class="flex flex-col items-center cursor-pointer group">
-                                    <input type="radio" name="attendance[{{ $student->id }}]" value="H" class="peer sr-only" required>
-                                    <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 text-transparent peer-checked:text-green-600 flex items-center justify-center transition-all">
-                                        <span class="font-bold text-xs">H</span>
-                                    </div>
-                                    <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Hadir</span>
-                                </label>
-                                
-                                <label class="flex flex-col items-center cursor-pointer group">
-                                    <input type="radio" name="attendance[{{ $student->id }}]" value="I" class="peer sr-only">
-                                    <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 text-transparent peer-checked:text-blue-600 flex items-center justify-center transition-all">
-                                        <span class="font-bold text-xs">I</span>
-                                    </div>
-                                    <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Izin</span>
-                                </label>
-                                
-                                <label class="flex flex-col items-center cursor-pointer group">
-                                    <input type="radio" name="attendance[{{ $student->id }}]" value="S" class="peer sr-only">
-                                    <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 text-transparent peer-checked:text-yellow-600 flex items-center justify-center transition-all">
-                                        <span class="font-bold text-xs">S</span>
-                                    </div>
-                                    <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Sakit</span>
-                                </label>
-
-                                <label class="flex flex-col items-center cursor-pointer group">
-                                    <input type="radio" name="attendance[{{ $student->id }}]" value="A" class="peer sr-only">
-                                    <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 text-transparent peer-checked:text-red-600 flex items-center justify-center transition-all">
-                                        <span class="font-bold text-xs">A</span>
-                                    </div>
-                                    <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Alpha</span>
-                                </label>
+                            <div>
+                                <h4 class="font-bold text-gray-900">{{ $student->user->name }}</h4>
+                                <p class="text-xs text-gray-500">{{ $student->nis }}</p>
                             </div>
                         </div>
-                        @endforeach
-                    </div>
-                </div>
+                        
+                        <div class="flex gap-4">
+                            <label class="flex flex-col items-center cursor-pointer group">
+                                <input type="radio" name="attendance[{{ $student->id }}]" value="H" class="peer sr-only" required>
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 text-transparent peer-checked:text-green-600 flex items-center justify-center transition-all">
+                                    <span class="font-bold text-xs">H</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Hadir</span>
+                            </label>
+                            
+                            <label class="flex flex-col items-center cursor-pointer group">
+                                <input type="radio" name="attendance[{{ $student->id }}]" value="I" class="peer sr-only">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 text-transparent peer-checked:text-blue-600 flex items-center justify-center transition-all">
+                                    <span class="font-bold text-xs">I</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Izin</span>
+                            </label>
+                            
+                            <label class="flex flex-col items-center cursor-pointer group">
+                                <input type="radio" name="attendance[{{ $student->id }}]" value="S" class="peer sr-only">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 text-transparent peer-checked:text-yellow-600 flex items-center justify-center transition-all">
+                                    <span class="font-bold text-xs">S</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Sakit</span>
+                            </label>
 
-                <div class="mt-6 pt-6 border-t border-gray-100 flex justify-end gap-3 rounded-none sticky bottom-0 bg-white">
-                     <button type="button" x-on:click="$dispatch('close-modal', 'attendance-modal')" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all">Simpan Absensi</button>
+                            <label class="flex flex-col items-center cursor-pointer group">
+                                <input type="radio" name="attendance[{{ $student->id }}]" value="A" class="peer sr-only">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 text-transparent peer-checked:text-red-600 flex items-center justify-center transition-all">
+                                    <span class="font-bold text-xs">A</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-400 group-hover:text-gray-600 mt-1">Alpha</span>
+                            </label>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
-            </form>
-        </div>
-    </x-modal>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-100 flex justify-end gap-3 rounded-none sticky bottom-0 bg-white">
+                    <button type="button" x-on:click="$dispatch('close-modal', 'attendance-modal')" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">Batal</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all">Simpan Absensi</button>
+            </div>
+        </form>
+
+    </div>
+</x-modal>
 @endsection
