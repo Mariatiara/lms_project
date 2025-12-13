@@ -5,7 +5,7 @@
 <h2 class="text-2xl font-bold mb-4">Daftar Tugas</h2>
 
 @if(auth()->user()->role == \App\Enums\UserRole::GURU)
-<a href="{{ route('tugas.create') }}" 
+<a href="{{ route('assignments.create') }}" 
    class="px-4 py-2 bg-blue-600 text-white rounded inline-block mb-4">
    + Buat Tugas
 </a>
@@ -19,7 +19,7 @@
         <p class="text-sm text-gray-600">Kelas: {{ $t->course->classroom->name ?? '-' }}</p>
         <p class="text-sm text-gray-600">Deadline: {{ $t->due_date ? $t->due_date->format('d M Y H:i') : '-' }}</p>
 
-        <a href="{{ route('tugas.show', $t->id) }}" 
+        <a href="{{ route('assignments.show', $t->id) }}" 
            class="mt-3 inline-block text-blue-600">
             Lihat Detail →
         </a>

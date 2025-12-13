@@ -1,0 +1,13 @@
+Illuminate\Support\Collection Object
+(
+    [items:protected] => Array
+        (
+            [0] => "{\"A\":\"temporibus\",\"B\":\"reprehenderit\",\"C\":\"aut\",\"D\":\"molestias\"}"
+            [1] => "{\"A\":\"natus\",\"B\":\"dolore\",\"C\":\"officiis\",\"D\":\"est\"}"
+            [2] => "{\"A\":\"rerum\",\"B\":\"odit\",\"C\":\"tempore\",\"D\":\"et\"}"
+            [3] => 
+            [4] => "{\"A\":\"veniam\",\"B\":\"a\",\"C\":\"perferendis\",\"D\":\"perferendis\"}"
+        )
+
+    [escapeWhenCastingToString:protected] => 
+)

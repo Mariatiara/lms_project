@@ -53,7 +53,7 @@
         
         {{-- TODO: Check if submission exists and show status/score if graded --}}
         
-        <form action="{{ route('tugas.upload', $tugas->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form action="{{ route('assignments.upload', $tugas->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Upload File Jawaban</label>

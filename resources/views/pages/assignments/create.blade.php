@@ -4,7 +4,7 @@
 
 <h2 class="text-2xl font-bold mb-4">Buat Tugas Baru</h2>
 
-<form action="{{ route('tugas.store') }}" method="POST" class="space-y-4">
+<form action="{{ route('assignments.store') }}" method="POST" class="space-y-4">
     @csrf
 
     <div>

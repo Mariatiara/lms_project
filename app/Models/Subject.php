@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'school_id',
         'name',
         'code',
+        'passing_grade',
     ];
 
     public function school()

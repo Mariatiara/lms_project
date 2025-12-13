@@ -62,6 +62,17 @@ class TeacherController extends Controller
                             ->take(3)
                             ->get();
 
+        // 7. Today's Schedule
+        $today = strtolower(now()->format('l'));
+        $todaysClasses = \App\Models\ClassSchedule::whereHas('course', function($q) use ($teacher, $activeAcademicYearId) {
+            $q->where('teacher_id', $teacher->id)
+              ->where('academic_year_id', $activeAcademicYearId);
+        })
+        ->where('day_of_week', $today)
+        ->with(['course.classroom', 'course.subject'])
+        ->orderBy('start_time')
+        ->get();
+
         // 7. Assignments Needing Grading (Assignments with submissions where score is null)
         $pendingGrading = \App\Models\Assignment::whereHas('course', function($q) use ($teacher) {
                                     $q->where('teacher_id', $teacher->id);
@@ -84,7 +95,8 @@ class TeacherController extends Controller
             'averageAttendance',
             'studentsPerClass',
             'activeCourses',
-            'pendingGrading'
+            'pendingGrading',
+            'todaysClasses'
         ));
     }
 
@@ -341,5 +353,55 @@ class TeacherController extends Controller
         ]);
 
         return back()->with('success', 'Tugas berhasil diperbarui.');
+    }
+
+    public function showAssignment($id)
+    {
+        $assignment = \App\Models\Assignment::with(['course.classroom', 'course.subject'])->findOrFail($id);
+        
+        // Auth check
+        $teacher = \Illuminate\Support\Facades\Auth::user()->teacher;
+        if($assignment->course->teacher_id !== $teacher->id) {
+            abort(403);
+        }
+
+        $students = $assignment->course->classroom->students()->orderBy('nama')->get();
+        $submissions = $assignment->submissions->keyBy('student_id');
+
+        return view('pages.guru.assignments.show', compact('assignment', 'students', 'submissions'));
+    }
+
+    public function gradeSubmission(Request $request, $id)
+    {
+        // $id is Assignment ID, we need student_id from request
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'score' => 'required|numeric|min:0|max:100',
+            'feedback' => 'nullable|string'
+        ]);
+
+        $assignment = \App\Models\Assignment::findOrFail($id);
+        
+        // Auth check
+        $teacher = \Illuminate\Support\Facades\Auth::user()->teacher;
+        if($assignment->course->teacher_id !== $teacher->id) {
+            abort(403);
+        }
+
+        \App\Models\AssignmentSubmission::updateOrCreate(
+            [
+                'assignment_id' => $assignment->id,
+                'student_id' => $request->student_id
+            ],
+            [
+                'score' => $request->score,
+                'feedback' => $request->feedback,
+                // If grading without submission (e.g. manual offline submission), set submitted_at?
+                // Ideally they should have submitted something, but we can allow grading empty submissions if needed.
+                // For now, let's assume this updates an existing submission or creates a grade record.
+            ]
+        );
+
+        return back()->with('success', 'Nilai berhasil disimpan.');
     }
 }
