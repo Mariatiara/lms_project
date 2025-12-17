@@ -17,14 +17,14 @@ class DinasReportController extends Controller
 
         // Filters
         if ($request->filled('school_level')) {
-            $query->whereHas('school', function($q) use ($request) {
+            $query->whereHas('school', function ($q) use ($request) {
                 $q->where('education_level', $request->school_level);
             });
         }
-        
+
         if ($request->filled('month') && $request->filled('year')) {
             $query->whereYear('report_period', $request->year)
-                  ->whereMonth('report_period', $request->month);
+                ->whereMonth('report_period', $request->month);
         }
 
         $reports = $query->latest()->paginate(10);
@@ -37,7 +37,7 @@ class DinasReportController extends Controller
 
         // Reuse Filter Logic could be extracted
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.$request->search.'%');
+            $query->where('title', 'like', '%' . $request->search . '%');
         }
 
         $reports = $query->latest()->paginate(10);
@@ -46,7 +46,7 @@ class DinasReportController extends Controller
 
     public function show($id)
     {
-        $report = SchoolReport::with(['school', 'uploader', 'reviewer'])->findOrFail($id);
+        $report = SchoolReport::with(['school', 'uploader', 'reviewer', 'histories'])->findOrFail($id);
         return view('dashboard.dinas.reports.show', compact('report'));
     }
 
@@ -58,7 +58,7 @@ class DinasReportController extends Controller
         ]);
 
         $report = SchoolReport::findOrFail($id);
-        
+
         $report->update([
             'status' => $request->status,
             'dinas_feedback' => $request->dinas_feedback,

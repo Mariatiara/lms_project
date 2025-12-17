@@ -96,7 +96,10 @@ Route::middleware(['auth', 'verified', 'role:admin_dinas'])->group(function () {
     Route::post('/dinas/schools/{id}/activate', [DinasSchoolController::class, 'activate'])->name('dinas.schools.activate');
     Route::post('/dinas/schools/{id}/reset-password', [DinasSchoolController::class, 'resetPassword'])->name('dinas.schools.reset-password');
 });
-Route::middleware(['auth', 'verified', 'role:kepala_sekolah'])->get('/dashboard/headmaster', [HeadmasterController::class, 'index'])->name('dashboard.headmaster');
+Route::middleware(['auth', 'verified', 'role:kepala_sekolah'])->group(function () {
+    Route::get('/dashboard/headmaster', [HeadmasterController::class, 'index'])->name('dashboard.headmaster');
+    Route::resource('school-reports', \App\Http\Controllers\Headmaster\SchoolReportController::class);
+});
 Route::middleware(['auth', 'verified', 'role:admin_sekolah'])->get('/dashboard/school-admin', [SchoolAdminController::class, 'index'])->name('dashboard.school.admin');
 Route::middleware(['auth', 'verified', 'role:guru'])->group(function () {
     Route::get('/dashboard/teacher', [DashboardTeacherController::class, 'index'])->name('dashboard.teacher');

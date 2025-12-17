@@ -47,4 +47,9 @@ class SchoolReport extends Model
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
+
+    public function histories()
+    {
+        return $this->hasMany(SchoolReportHistory::class)->latest(); // Sort by newest version
+    }
 }
