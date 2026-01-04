@@ -94,8 +94,8 @@
                         'sick' => 'Sakit',
                         'permission' => 'Izin',
                     ];
-                    $colorClass = $statusColors[$attendanceToday->status->value] ?? 'bg-gray-100 text-gray-700';
-                    $labelText = $statusLabel[$attendanceToday->status->value] ?? ucfirst($attendanceToday->status->value);
+                    $colorClass = $statusColors[$attendanceToday->status] ?? 'bg-gray-100 text-gray-700';
+                    $labelText = $statusLabel[$attendanceToday->status] ?? ucfirst($attendanceToday->status);
                 @endphp
                 <span class="px-3 py-1 rounded-full text-sm font-bold border {{ $colorClass }}">
                     {{ $labelText }}
